@@ -30,3 +30,17 @@ One can add his own samples to `demo_images` and get predictions on these.
 ## Notes
 1. Current neural network is sensitive to input resolution. I got a better results on images with original size. Low dimensional and bad camera conditions affect multiplicatively.
 2. I attached photos of my personal document purposely for demonstration purposes. I'm sure you will use these with care. Thanks.
+
+## Update
+Based on feedback got through `ml-challenge@scanbot.io` at Oct 31th, 2019 I've decided to explain motivation of the current step more. 
+
+Honestly I hadn't understood what exactly you were expecting as a result and I'll find out it separately. But there I decided to interpret task as a business one, i.e. what should I do to get a product version ready to launch on a real scenario.
+
+So it isn't just yet another opensource that I tried to hook as a solution. But a start point for me as a person who hasn't faced with this area before. It gives me such information as 
+* there are datasets in a academia that proved their worth for my concrete business case
+* algorithm itself seems pretty simple both for training and inference - Unet architecture with utilizing both location of character and space symbol. Furthemore it has [published at CVPR 2019](http://openaccess.thecvf.com/content_CVPR_2019/papers/Baek_Character_Region_Awareness_for_Text_Detection_CVPR_2019_paper.pdf).
+* special data sampling practices
+
+As it has `train.py` tool I can finetune this solution on my own data domain immediately. Or I can find architecture that fits preferable Accuracy/Speed trade-off.
+
+Yeah, it's purely engineer side of the given task. That's the point.
