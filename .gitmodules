@@ -1,3 +1,0 @@
-[submodule "third-party/CRAFT-pytorch"]
-	path = third-party/CRAFT-pytorch
-	url = https://github.com/clovaai/CRAFT-pytorch
