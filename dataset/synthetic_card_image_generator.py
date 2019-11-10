@@ -89,9 +89,6 @@ class SyntheticCardImageGenerator:
     def image_gt(self):
         return self._image_gt
 
-    def show(self):
-        show_array(self._image)
-
     def put_fragment(self, fragment, pt=None):
         if pt is None:
             pt = tuple([randint(0, high=self.CARD_SIZE[i]) for i in [0, 1]])
@@ -102,6 +99,20 @@ class SyntheticCardImageGenerator:
     def draw_pattern_texts(self):
         for img_i in range(self.PATTERN_TEXTS_NUM):
             self.put_fragment(self._pattern_text_imgs[img_i], self._pattern_text_imgs_pt[img_i])
+
+    def apply_square_and_zooming(self, factor=1.):
+        size = int(factor*max(self.CARD_SIZE))
+
+        new_image = np.zeros([size] * 2, dtype=np.uint8)
+        new_image_gt = np.zeros([size] * 2, dtype=np.uint8)
+
+        y_delta, x_delta = ((size - np.array(self.CARD_SIZE)) / 2).astype(np.int)
+
+        for obj_dst, obj_src in [(new_image, self._image), (new_image_gt, self._image_gt)]:
+            obj_dst[y_delta:self.CARD_SIZE[0] + y_delta, x_delta:self.CARD_SIZE[1] + x_delta] = obj_src
+
+        self._image = new_image
+        self._image_gt = new_image_gt
 
     @staticmethod
     def generate_pattern_text_bare(max_size=16, pieces_num=10, piece_max_len=20):

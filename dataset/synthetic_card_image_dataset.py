@@ -1,4 +1,5 @@
 from numpy.random import randint
+from PIL import Image
 
 from torch.utils.data import Dataset
 
@@ -6,8 +7,7 @@ from synthetic_card_image_generator import SyntheticCardImageGenerator, generate
 
 
 class SyntheticCardImageDataset(Dataset):
-    def __init__(self, image_size, transform=None):
-        self.image_size = image_size
+    def __init__(self, transform=None):
         self.transform = transform
 
     def __len__(self):
@@ -26,4 +26,6 @@ class SyntheticCardImageDataset(Dataset):
 
         card_image.draw_pattern_texts()
 
-        return card_image.image
+        card_image.apply_square_and_zooming()
+
+        return Image.fromarray(card_image.image), Image.fromarray(card_image.image_gt)
