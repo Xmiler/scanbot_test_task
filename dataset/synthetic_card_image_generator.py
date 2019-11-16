@@ -17,9 +17,10 @@ FONTS = [font for i, font in enumerate(load_fonts('en')) if
 MAGES4AUGMENT_ROOT_PATH = Path(__file__).parent / '../images4augment/'
 
 image_face_paths = sorted([path for path in (MAGES4AUGMENT_ROOT_PATH / 'faces').glob('**/*') if path.is_file()])
+image_background_paths = sorted([path for path in (MAGES4AUGMENT_ROOT_PATH / 'background').glob('**/*') if path.is_file()])
 
 
-def create_image_with_text(text, font_id=None, font_size=None):
+def create_image_with_text(text, font_id=None, font_size=None, border=None):
 
     if font_id is None:
         font_id = randint(0, high=len(FONTS))
@@ -27,19 +28,23 @@ def create_image_with_text(text, font_id=None, font_size=None):
         font_size = randint(16, high=64)
 
     image_font = ImageFont.truetype(font=FONTS[font_id], size=font_size)
+    image_size = list(image_font.getsize(text))
+    if not border:
+        image_size[0] += 30
+        image_size[1] += 30
 
     text_img = Image.new("L",
-                         image_font.getsize(text),
+                         image_size,
                          255)
     text_draw = ImageDraw.Draw(text_img)
 
-    text_draw.text((0, 0), text, font=image_font, fill=0)
+    text_draw.text((15, 15), text, font=image_font, fill=0)
 
     return np.array(text_img)
 
 
 def generate_random_text(size):
-    return ''.join(np.random.choice(CHARACTERS, size=size))
+    return ''.join(choice(CHARACTERS, size=size))
 
 
 def generate_random_text_image(text_len, font_id=None, font_size=None):
@@ -48,7 +53,7 @@ def generate_random_text_image(text_len, font_id=None, font_size=None):
 
 
 def generate_random_face_image(size):
-    image_face_path = np.random.choice(image_face_paths, 1)[0]
+    image_face_path = choice(image_face_paths, 1)[0]
     image_face = cv2.imread(image_face_path.as_posix(), cv2.IMREAD_GRAYSCALE)
     h_, w_ = image_face.shape
     size_ = max(h_, w_)
@@ -77,7 +82,7 @@ class SyntheticCardImageGenerator:
 
         # set pattern texts drawing parameters
         pt_ys = self.CARD_SIZE[0] - np.cumsum(randint(50, high=100, size=self.PATTERN_TEXTS_NUM))
-        pt_ys -= 10
+        pt_ys -= 25
 
         font_id = randint(0, high=len(FONTS))
         font_size = randint(50, 65)
@@ -114,10 +119,16 @@ class SyntheticCardImageGenerator:
         for img_i in range(self.PATTERN_TEXTS_NUM):
             self.put_fragment(self._pattern_text_imgs[img_i], self._pattern_text_imgs_pt[img_i])
 
-    def apply_square_and_zooming(self, factor=1.):
+    def apply_square_and_zooming(self, factor=None):
+        if factor is None:
+            factor = 1. + randint(0, high=100) / 100.
+
         size = int(factor*max(self.CARD_SIZE))
 
-        new_image = np.zeros([size] * 2, dtype=np.uint8)
+        image_background_path = choice(image_background_paths, 1)[0]
+        image_background = cv2.imread(image_background_path.as_posix(), cv2.IMREAD_GRAYSCALE)
+
+        new_image = cv2.resize(image_background, tuple([size] * 2))
         new_image_gt = np.zeros([size] * 2, dtype=np.uint8)
 
         y_delta, x_delta = ((size - np.array(self.CARD_SIZE)) / 2).astype(np.int)

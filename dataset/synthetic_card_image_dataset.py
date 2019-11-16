@@ -1,21 +1,23 @@
 from numpy.random import randint
 from PIL import Image
 
+import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-from synthetic_card_image_generator import SyntheticCardImageGenerator, generate_random_text_image, generate_random_face_image
+from .synthetic_card_image_generator import SyntheticCardImageGenerator, generate_random_text_image, generate_random_face_image
 
 
 class SyntheticCardImageDataset(Dataset):
-    SIZE = 256
+    SIZE = 512
     transform = transforms.Compose([transforms.ToTensor()])
 
-    def __init__(self, to_tensor=False):
+    def __init__(self, to_tensor=False, fake_epoche_size=1000):
         self._to_tensor = to_tensor
+        self._fake_epoch_size = fake_epoche_size
 
     def __len__(self):
-        return 1000  # fake size of epoch
+        return self._fake_epoch_size
 
     def __getitem__(self, idx):
         card_image = SyntheticCardImageGenerator()
@@ -30,7 +32,7 @@ class SyntheticCardImageDataset(Dataset):
 
         card_image.draw_pattern_texts()
 
-        card_image.apply_square_and_zooming(factor=1.)
+        card_image.apply_square_and_zooming()
 
         card_image.resize(self.SIZE)
 
@@ -39,5 +41,6 @@ class SyntheticCardImageDataset(Dataset):
         if self._to_tensor:
             tnsf = transforms.ToTensor()
             image, image_gt = tnsf(image), tnsf(image_gt)
+            image_gt = image_gt.type(torch.LongTensor)
 
         return image, image_gt
