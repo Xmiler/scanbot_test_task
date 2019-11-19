@@ -1,4 +1,3 @@
-from datetime import datetime
 from pathlib import Path
 import random
 
@@ -11,49 +10,51 @@ from torch.optim import SGD
 from tensorboardX import SummaryWriter
 from ignite.engine import Events
 from ignite.engine import create_supervised_trainer, create_supervised_evaluator
-from ignite.metrics import Loss
+from ignite.metrics import Loss, Precision, Recall
 
 from dataset.synthetic_card_image_dataset import SyntheticCardImageDataset
 from models.unet_mini import UNetMini
-from utils import print_with_time, get_latest_epoch_in_weights_folder
+from utils import print_with_time, get_latest_epoch_in_weights_folder, pr_output_transform
 
 
 print(' ================= Initialization ================= ')
-EXPERIMENT_NAME = 'baseline2'
+INPUT_SIZE = 512
+EXPERIMENT_NAME = f'baseline_{INPUT_SIZE}'
 print(f'Experiment name: {EXPERIMENT_NAME}')
 
 # --->>> Service parameters
 # https://pytorch.org/docs/stable/notes/randomness.html
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
-random.seed(0xDEADFACE)
-np.random.seed(0xDEADFACE)
-torch.manual_seed(0xDEADFACE)
+random.seed(0)
+np.random.seed(0)
+torch.manual_seed(0)
 
 OUTPUT_PATH = Path('./artifacts/')
 writer = SummaryWriter(OUTPUT_PATH / 'tensorboard' / EXPERIMENT_NAME)
 WEIGHTS_PATH = OUTPUT_PATH / EXPERIMENT_NAME
 DEVICE = "cuda"
-CHECKPOINT_INTERVAL = 1
+CHECKPOINT_INTERVAL = 10
 CHECKPOINT_TEMPLATE = "epoch_{}_{:d}.pth"
+FAKE_EPOCH_SIZE = 1000
 
 
 # --->>> Training parameters
 BATCH_SIZE = 8
 MAX_EPOCHS = 150
-BASE_LR = 0.1
-FAKE_EPOCH_SIZE = 1000
+BASE_LR = 0.05
 
 # model
 model = UNetMini(2)
 model.to(device=DEVICE)
 
+# optimization
 optimizer = SGD(model.parameters(), lr=BASE_LR, momentum=0.9, weight_decay=5e-4)
 
 
 def criterion(output, target):
-    softmax = F.log_softmax(output, dim=1)
-    return F.cross_entropy(softmax, torch.squeeze(target))
+    x = F.log_softmax(output, dim=1)
+    return F.cross_entropy(x, torch.squeeze(target))
 
 
 def adjust_learning_rate(optimizer, epoch):
@@ -68,19 +69,14 @@ def adjust_learning_rate(optimizer, epoch):
 
 
 # data
-dataset = SyntheticCardImageDataset(to_tensor=True, fake_epoche_size=FAKE_EPOCH_SIZE)
+dataset = SyntheticCardImageDataset(INPUT_SIZE, to_tensor=True, fake_epoche_size=FAKE_EPOCH_SIZE)
 data_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-
 
 # --->>> Callbacks
 def update_lr_scheduler(engine):
     lr = adjust_learning_rate(optimizer, engine.state.epoch)
     print_with_time("Learning rate: {}".format(lr))
     writer.add_scalar('lr', lr, global_step=engine.state.epoch)
-
-
-metrics = {'avg_loss': Loss(criterion)}
-evaluator = create_supervised_evaluator(model, metrics=metrics, device=DEVICE)
 
 
 def resume_latest_checkpoint(engine):
@@ -104,9 +100,11 @@ def resume_latest_checkpoint(engine):
 def compute_and_log_metrics(engine):
     epoch = engine.state.epoch
     metrics = evaluator.run(data_loader).metrics
-    print_with_time("Validation Results - Epoch: {}  Average Loss: {:.4f}"
-                    .format(engine.state.epoch, metrics['avg_loss']))
-    writer.add_scalars('loss', {'validation': metrics['avg_loss']}, global_step=epoch)
+    print_with_time("Validation Results - Epoch: {}  Loss: {:.4f}  Precision: {:.4f}  Recall: {:.4f}"
+                    .format(engine.state.epoch, metrics['loss'], metrics['precision'], metrics['recall']))
+    writer.add_scalars('loss', {'validation': metrics['loss']}, global_step=epoch)
+    writer.add_scalars('precision', {'validation': metrics['precision']}, global_step=epoch)
+    writer.add_scalars('recall', {'validation': metrics['recall']}, global_step=epoch)
 
 
 def create_checkpoint(engine):
@@ -120,7 +118,11 @@ def create_checkpoint(engine):
     print_with_time('Created checkpoint with training state.')
 
 
-# evaluator = create_supervised_evaluator(model, metrics=metrics, device=device)
+# --->>> Evaluator
+metrics = {'loss': Loss(criterion),
+           'precision': Precision(output_transform=pr_output_transform),
+           'recall': Recall(output_transform=pr_output_transform)}
+evaluator = create_supervised_evaluator(model, metrics=metrics, device=DEVICE)
 
 # --->>> Trainer
 trainer = create_supervised_trainer(model, optimizer, criterion, device=DEVICE)

@@ -9,10 +9,10 @@ from .synthetic_card_image_generator import SyntheticCardImageGenerator, generat
 
 
 class SyntheticCardImageDataset(Dataset):
-    SIZE = 512
     transform = transforms.Compose([transforms.ToTensor()])
 
-    def __init__(self, to_tensor=False, fake_epoche_size=1000):
+    def __init__(self, size, to_tensor=False, fake_epoche_size=1000):
+        self._size = size
         self._to_tensor = to_tensor
         self._fake_epoch_size = fake_epoche_size
 
@@ -34,7 +34,7 @@ class SyntheticCardImageDataset(Dataset):
 
         card_image.apply_square_and_zooming()
 
-        card_image.resize(self.SIZE)
+        card_image.resize(self._size)
 
         image, image_gt = Image.fromarray(card_image.image), Image.fromarray(card_image.image_gt)
 
