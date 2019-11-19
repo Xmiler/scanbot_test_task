@@ -1,6 +1,15 @@
 # Problem Statement
 Install Jupyter, matplotlib and opencv-python, and open mrz-lab.ipynb
 
+# Oct 31, 2019 - Version 1.0.0
+This is initial version of the "<"-segmentation subtask. It introduces base implementation of data synthesis module (see `dataset_demo.ipynb`) and training procedure. 
+
+There are several issues related to inefficient training. But that's enough to make couple of experiments I'd like to share with you.
+
+I've trained UNet architecture with primitive backbone on 512x512 gray-scale input. It gives precision/recall ~95% (with threshold 0.5) and works on the photo attached by you. But it doesn't work on the more realistic one because of current data synthesis module doesn't support such variations. See `inference.ipynb`.
+
+It seems that current bottleneck is the ability of synthetic data to coverage aspects of real image. Current neural network gives high quality using current synthetic data.
+
 # Oct 31, 2019 - Version 0.0.0
 ## Overview
 This is a trial version that doesn't solve a problem completely but aimed to demonstrate direction of investigation. It's based on opensource text detector (released by https://ocr.clova.ai/ :)) and seems it has not bad robustness (see below). If I understood correctly the objective is to detect MRZ text and I really haven't to detect `<` symbols.
