@@ -1,7 +1,7 @@
 # Problem Statement
 Install Jupyter, matplotlib and opencv-python, and open mrz-lab.ipynb
 
-# Oct 31, 2019 - Version 1.0.0
+# Nov 19, 2019 - Version 1.0.0
 This is initial version of the "<"-segmentation subtask. It introduces base implementation of data synthesis module (see `dataset_demo.ipynb`) and training procedure. 
 
 There are several issues related to inefficient training. But that's enough to make couple of experiments I'd like to share with you.
