@@ -4,6 +4,14 @@ import random
 import numpy as np
 
 import torch
+
+# https://pytorch.org/docs/stable/notes/randomness.html
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+random.seed(0xDEADFACE)
+np.random.seed(0xDEADFACE)
+torch.manual_seed(0xDEADFACE)
+
 from torch.utils.data import DataLoader
 from torch.nn import functional as F
 from torch.optim import SGD
@@ -23,13 +31,6 @@ EXPERIMENT_NAME = f'baseline_{INPUT_SIZE}'
 print(f'Experiment name: {EXPERIMENT_NAME}')
 
 # --->>> Service parameters
-# https://pytorch.org/docs/stable/notes/randomness.html
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-random.seed(0)
-np.random.seed(0)
-torch.manual_seed(0)
-
 OUTPUT_PATH = Path('./artifacts/')
 writer = SummaryWriter(OUTPUT_PATH / 'tensorboard' / EXPERIMENT_NAME)
 WEIGHTS_PATH = OUTPUT_PATH / EXPERIMENT_NAME
@@ -42,7 +43,7 @@ FAKE_EPOCH_SIZE = 1000
 # --->>> Training parameters
 BATCH_SIZE = 8
 MAX_EPOCHS = 150
-BASE_LR = 0.05
+BASE_LR = 0.1
 
 # model
 model = UNetMini(2)
