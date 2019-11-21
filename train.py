@@ -13,7 +13,7 @@ np.random.seed(0xDEADFACE)
 torch.manual_seed(0xDEADFACE)
 
 from torch.utils.data import DataLoader
-from torch.nn import functional as F
+from torch import nn
 from torch.optim import SGD
 from tensorboardX import SummaryWriter
 from ignite.engine import Events
@@ -21,13 +21,13 @@ from ignite.engine import create_supervised_trainer, create_supervised_evaluator
 from ignite.metrics import Loss, Precision, Recall
 
 from dataset.synthetic_card_image_dataset import SyntheticCardImageDataset
-from models.unet_mini import UNetMini
+from models.unet import get_resnet18_greyscale
 from utils import print_with_time, get_latest_epoch_in_weights_folder, pr_output_transform
 
 
 print(' ================= Initialization ================= ')
-INPUT_SIZE = 512
-EXPERIMENT_NAME = f'baseline_{INPUT_SIZE}'
+INPUT_SIZE = 672
+EXPERIMENT_NAME = f'resnet18_{INPUT_SIZE}'
 print(f'Experiment name: {EXPERIMENT_NAME}')
 
 # --->>> Service parameters
@@ -46,23 +46,23 @@ MAX_EPOCHS = 150
 BASE_LR = 0.1
 
 # model
-model = UNetMini(2)
+model = get_resnet18_greyscale()
 model.to(device=DEVICE)
 
 # optimization
 optimizer = SGD(model.parameters(), lr=BASE_LR, momentum=0.9, weight_decay=5e-4)
 
 
-def criterion(output, target):
-    x = F.log_softmax(output, dim=1)
-    return F.cross_entropy(x, torch.squeeze(target))
+criterion = nn.BCEWithLogitsLoss()
 
 
 def adjust_learning_rate(optimizer, epoch):
-    if epoch < 50:
+    DROP_EPOCH = 50
+    assert DROP_EPOCH <= MAX_EPOCHS
+    if epoch < DROP_EPOCH:
         lr = BASE_LR
     else:
-        lr = BASE_LR * (1 - (epoch-50) / (MAX_EPOCHS-50))
+        lr = BASE_LR * (1 - (epoch-DROP_EPOCH) / (MAX_EPOCHS-DROP_EPOCH))
 
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr

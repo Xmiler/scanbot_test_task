@@ -1,7 +1,6 @@
 from numpy.random import randint
 from PIL import Image
 
-import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 
@@ -41,6 +40,5 @@ class SyntheticCardImageDataset(Dataset):
         if self._to_tensor:
             tnsf = transforms.ToTensor()
             image, image_gt = tnsf(image), tnsf(image_gt)
-            image_gt = image_gt.type(torch.LongTensor)
 
         return image, image_gt

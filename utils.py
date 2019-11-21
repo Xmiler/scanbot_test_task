@@ -1,5 +1,5 @@
 from datetime import datetime
-from torch.nn import functional as F
+
 import torch
 
 
@@ -18,6 +18,6 @@ def get_latest_epoch_in_weights_folder(weights_path):
 
 def pr_output_transform(output):
     y_pred, y = output
-    y_pred = F.softmax(y_pred, dim=1)[:, 1:, :, :]
+    y_pred = torch.sigmoid(y_pred)
     y_pred = torch.round(y_pred)
     return y_pred, y
