@@ -27,7 +27,7 @@ from utils import print_with_time, get_latest_epoch_in_weights_folder, pr_output
 
 print(' ================= Initialization ================= ')
 INPUT_SIZE = 672
-EXPERIMENT_NAME = f'resnet18_{INPUT_SIZE}'
+EXPERIMENT_NAME = f'resnet18_{INPUT_SIZE}_hardness1'
 print(f'Experiment name: {EXPERIMENT_NAME}')
 
 # --->>> Service parameters
@@ -70,7 +70,7 @@ def adjust_learning_rate(optimizer, epoch):
 
 
 # data
-dataset = SyntheticCardImageDataset(INPUT_SIZE, to_tensor=True, fake_epoche_size=FAKE_EPOCH_SIZE)
+dataset = SyntheticCardImageDataset(INPUT_SIZE, to_tensor=True, fake_epoche_size=FAKE_EPOCH_SIZE, hardness=1)
 data_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
 # --->>> Callbacks
@@ -84,18 +84,27 @@ def resume_latest_checkpoint(engine):
     epoch = get_latest_epoch_in_weights_folder(WEIGHTS_PATH)
 
     if epoch == 0:
-        return
+        previous_experiment_name = f'resnet18_{INPUT_SIZE}'
+        previous_experiment_epoch = 150
 
-    state_dict = torch.load(WEIGHTS_PATH / f'epoch_model_{epoch}.pth')
-    model.load_state_dict(state_dict)
+        state_dict = torch.load(OUTPUT_PATH / previous_experiment_name / f'epoch_model_{previous_experiment_epoch}.pth')
+        model.load_state_dict(state_dict)
 
-    state_dict = torch.load(WEIGHTS_PATH / f'epoch_optimizer_{epoch}.pth')
-    optimizer.load_state_dict(state_dict)
+        state_dict = torch.load(OUTPUT_PATH / previous_experiment_name / f'epoch_optimizer_{previous_experiment_epoch}.pth')
+        optimizer.load_state_dict(state_dict)
 
-    engine.state.epoch = epoch
-    engine.state.iteration = epoch * FAKE_EPOCH_SIZE
+        print_with_time(f'Started from experiment {previous_experiment_name} at epoch {previous_experiment_epoch}.')
+    else:
+        state_dict = torch.load(WEIGHTS_PATH / f'epoch_model_{epoch}.pth')
+        model.load_state_dict(state_dict)
 
-    print_with_time(f'Resumed to training state from epoch {epoch}.')
+        state_dict = torch.load(WEIGHTS_PATH / f'epoch_optimizer_{epoch}.pth')
+        optimizer.load_state_dict(state_dict)
+
+        engine.state.epoch = epoch
+        engine.state.iteration = epoch * FAKE_EPOCH_SIZE
+
+        print_with_time(f'Resumed to training state from epoch {epoch}.')
 
 
 def compute_and_log_metrics(engine):
