@@ -24,13 +24,11 @@ class SyntheticCardImageDataset(Dataset):
                             'geom_augm': None,
                             'static_augm': None}
         if hardness == 1:
-            self._trsf_extra['font_fill'] = randint(0, 100)
+            self._trsf_extra['font_fill'] = randint(0, 50)
             self._trsf_extra['fill'] = randint(150, 256)
-            self._trsf_extra['geom_augm'] = iaa.Sequential([iaa.Affine(rotate=(-5, 5), mode='symmetric'),
-                                                            iaa.PerspectiveTransform(scale=0.025, mode='replicate')])
-            self._trsf_extra['static_augm'] = iaa.Sequential([iaa.AdditivePoissonNoise(lam=3),
-                                                              iaa.MotionBlur(angle=1),
-                                                              iaa.GaussianBlur(0.1)])
+            self._trsf_extra['geom_augm'] = iaa.Sequential([iaa.Affine(rotate=(-1, 1), mode='symmetric'),
+                                                            iaa.PerspectiveTransform(scale=0.005, mode='replicate')])
+            self._trsf_extra['static_augm'] = iaa.Sequential([iaa.AdditivePoissonNoise(lam=3)])
 
     def __len__(self):
         return self._fake_epoch_size

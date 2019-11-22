@@ -42,8 +42,8 @@ FAKE_EPOCH_SIZE = 1000
 
 # --->>> Training parameters
 BATCH_SIZE = 8
-MAX_EPOCHS = 150
-BASE_LR = 0.1
+MAX_EPOCHS = 50
+BASE_LR = 0.01
 
 # model
 model = get_resnet18_greyscale()
@@ -57,13 +57,12 @@ criterion = nn.BCEWithLogitsLoss()
 
 
 def adjust_learning_rate(optimizer, epoch):
-    DROP_EPOCH = 50
+    DROP_EPOCH = 20
     assert DROP_EPOCH <= MAX_EPOCHS
     if epoch < DROP_EPOCH:
         lr = BASE_LR
     else:
         lr = BASE_LR * (1 - (epoch-DROP_EPOCH) / (MAX_EPOCHS-DROP_EPOCH))
-
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
