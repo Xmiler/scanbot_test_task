@@ -1,7 +1,7 @@
 # Problem Statement
 Install Jupyter, matplotlib and opencv-python, and open mrz-lab.ipynb
 
-# Nov 19, 2019 - Version 1.1.0
+# Nov 22, 2019 - Version 1.1.0
 Several experiments were done.
 
 1. I changed architecture on the standard resnet18 one. It raises model's metrics on the current data sampling, but at the same time works worse on semi-real and real photos. It's common problem when we try to use too power CNN and don't have enough data (too simple data sampling strategy in our case). Commit: `9a23351`. 
