@@ -8,7 +8,7 @@ Several experiments were done.
 
 2. I augmented data sampling strategy with color jittering, noise and geometry (rotation + perspective). Then I finetuned CNN from `9a23351` with reduced learning rate. It works better on semi-real sample (than v1.0.0) and starts to work on a real one.
 
-Based on these observation I think the core impact on quality is a closing gap between real photo and synthetic one. One can see that false accepts [there](`dataset_demo.ipynb`) are objects that CNN didn't see before during training: stamp and hand.  
+Based on these observation I think the core impact on quality is a closing gap between real photo and synthetic one. One can see that false accepts [here](`dataset_demo.ipynb`) are objects that CNN didn't see before during training: stamp and hand.  
 
 # Nov 19, 2019 - Version 1.0.0
 This is initial version of the "<"-segmentation subtask. It introduces base implementation of data synthesis module (see `dataset_demo.ipynb`) and training procedure. 
