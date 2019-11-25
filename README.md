@@ -1,7 +1,52 @@
-# Problem Statement
-Install Jupyter, matplotlib and opencv-python, and open mrz-lab.ipynb
+# About
+Prototype of the "<"-segmentator as first stage of the test task. It shows ability of modern architecture to fit to simple synthetic data so the core impact on quality is a closing gap between real photo and synthetic one (see [v1.1.0](#nov-22-2019---version-110)).
 
-# Nov 22, 2019 - Version 1.1.0
+# GETTING STARTED
+
+## Install dependencies
+
+### Data for augmentation
+Place faces images to `images4augmentation/faces` folder  
+```
+https://fei.edu.br/~cet/frontalimages_manuallyaligned_part1.zip
+https://fei.edu.br/~cet/frontalimages_manuallyaligned_part2.zip
+```
+and outdoor images to `images4augmentation/background` folder
+```
+http://groups.csail.mit.edu/vision/LabelMe/NewImages/indoorCVPR_09.tar
+```
+
+### Requirements
+- trdg
+- imgaug
+- torch
+- pytorch-ignite
+- segmentation-models-pytorch
+- check requirements.txt
+```
+pip install -r requirements.txt
+```
+
+## Training
+Stage 1 (`resnet18_672`):
+```
+checkout 9a23351
+python3 train.py
+```
+Stage 2 (`resnet18_672_hardness1`):
+```
+checkout 2aa1878
+python3 train.py
+```
+
+## Evaluation
+Check [inference.ipynb](inference.ipynb)
+
+Get trained weights [here](https://drive.google.com/drive/folders/1z_XfdW5HrJmxeGDHDAmFVYwUzhej3xZT). 
+
+# CHANGES
+
+## Nov 22, 2019 - Version 1.1.0
 Several experiments were done.
 
 1. I changed architecture on the standard resnet18 one. It raises model's metrics on the current data sampling, but at the same time works worse on semi-real and real photos. It's common problem when we try to use too power CNN and don't have enough data (too simple data sampling strategy in our case). Commit: `9a23351`. 
@@ -10,7 +55,7 @@ Several experiments were done.
 
 Based on these observation I think the core impact on quality is a closing gap between real photo and synthetic one. One can see that false accepts [here](`dataset_demo.ipynb`) are objects that CNN didn't see before during training: stamp and hand.  
 
-# Nov 19, 2019 - Version 1.0.0
+## Nov 19, 2019 - Version 1.0.0
 This is initial version of the "<"-segmentation subtask. It introduces base implementation of data synthesis module (see `dataset_demo.ipynb`) and training procedure. 
 
 There are several issues related to inefficient training. But that's enough to make couple of experiments I'd like to share with you.
@@ -19,8 +64,8 @@ I've trained UNet architecture with primitive backbone on 512x512 gray-scale inp
 
 It seems that current bottleneck is the ability of synthetic data to coverage aspects of real image. Current neural network gives high quality using current synthetic data.
 
-# Oct 31, 2019 - Version 0.0.0
-## Overview
+## Oct 31, 2019 - Version 0.0.0
+### Overview
 This is a trial version that doesn't solve a problem completely but aimed to demonstrate direction of investigation. It's based on opensource text detector (released by https://ocr.clova.ai/ :)) and seems it has not bad robustness (see below). If I understood correctly the objective is to detect MRZ text and I really haven't to detect `<` symbols.
 If so I can get final solution
 
@@ -28,7 +73,7 @@ If so I can get final solution
 
 2) or even by direct text recognition using [this one](https://github.com/clovaai/deep-text-recognition-benchmark) if I don't have
 
-## Install
+### Install
 Download [weight](https://drive.google.com/open?id=1Jk4eGD7crsqCCg9C9VjCLkMN3ze8kutZ) for third-party model
 ```
 git submodule update --init thirg-party/CRAFT-pytorch
@@ -39,17 +84,17 @@ Follow installation instruction at `third-party/CRAFT-pytorch/README.md`. Issues
 1) `third-party/CRAFT-pytorch/requirements.txt`: `torch==0.4.1.post2` -> `torch==0.4.1`
 2) `CUDA 9`
 
-## Run
+### Run
 ```
 python third-party/CRAFT-pytorch/test.py --trained_model third-party/CRAFT-pytorch/resources/craft_mlt_25k.pth --test_folder demo_images/
 ```
 One can add his own samples to `demo_images` and get predictions on these.
 
-## Notes
+### Notes
 1. Current neural network is sensitive to input resolution. I got a better results on images with original size. Low dimensional and bad camera conditions affect multiplicatively.
 2. I attached photos of my personal document purposely for demonstration purposes. I'm sure you will use these with care. Thanks.
 
-## Update
+### Update
 Based on feedback got through `ml-challenge@scanbot.io` at Oct 31th, 2019 I've decided to explain motivation of the current step more. 
 
 Honestly I hadn't understood what exactly you were expecting as a result and I'll find out it separately. But there I decided to interpret task as a business one, i.e. what should I do to get a product version ready to launch on a real scenario.
